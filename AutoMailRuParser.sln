@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.329
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMailRuParser.Entities", "AutoMailRuParser.Entities\AutoMailRuParser.Entities.csproj", "{BF89B0F0-4B30-4221-8124-77D0ABB9EACA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{EFCF2EF8-5D63-4194-B498-E03572A39AF1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BLL", "BLL", "{622B2804-6031-4C65-87A6-118D3F8B9C82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMailRuParser.BLL.Contracts", "AutoMailRuParser.BLL.Contracts\AutoMailRuParser.BLL.Contracts.csproj", "{86A4812D-686A-426A-985D-9F9265C637BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMailRuParser.BLL", "AutoMailRuParser.BLL\AutoMailRuParser.BLL.csproj", "{6133DE40-BE1D-47E8-8890-1CDC35B49666}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BF89B0F0-4B30-4221-8124-77D0ABB9EACA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF89B0F0-4B30-4221-8124-77D0ABB9EACA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF89B0F0-4B30-4221-8124-77D0ABB9EACA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF89B0F0-4B30-4221-8124-77D0ABB9EACA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86A4812D-686A-426A-985D-9F9265C637BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86A4812D-686A-426A-985D-9F9265C637BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86A4812D-686A-426A-985D-9F9265C637BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86A4812D-686A-426A-985D-9F9265C637BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6133DE40-BE1D-47E8-8890-1CDC35B49666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6133DE40-BE1D-47E8-8890-1CDC35B49666}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6133DE40-BE1D-47E8-8890-1CDC35B49666}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6133DE40-BE1D-47E8-8890-1CDC35B49666}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BF89B0F0-4B30-4221-8124-77D0ABB9EACA} = {EFCF2EF8-5D63-4194-B498-E03572A39AF1}
+		{86A4812D-686A-426A-985D-9F9265C637BC} = {622B2804-6031-4C65-87A6-118D3F8B9C82}
+		{6133DE40-BE1D-47E8-8890-1CDC35B49666} = {622B2804-6031-4C65-87A6-118D3F8B9C82}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E07CC6FF-5930-44D0-81AE-CC91BB6AB2AD}
+	EndGlobalSection
+EndGlobal
