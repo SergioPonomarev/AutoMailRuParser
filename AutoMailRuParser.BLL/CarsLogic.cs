@@ -25,11 +25,11 @@ namespace AutoMailRuParser.BLL
             {
                 string url = urlCatalog + i.ToString();
 
-                var htmlDocument = GetHtmlDocument(url);
+                HtmlDocument htmlDocument = GetHtmlDocument(url);
 
-                var catalogItems = GetItemsFromCatalog(htmlDocument);
+                IEnumerable<HtmlNode> catalogItems = GetItemsFromCatalog(htmlDocument);
 
-                foreach (var catalogItem in catalogItems)
+                foreach (HtmlNode catalogItem in catalogItems)
                 {
                     string link = GetCatalogItemLink(catalogItem);
 
@@ -39,9 +39,9 @@ namespace AutoMailRuParser.BLL
 
                         htmlDocument = GetHtmlDocument(url);
 
-                        var modificationItems = GetModificationListItems(htmlDocument);
+                        IEnumerable<HtmlNode> modificationItems = GetModificationListItems(htmlDocument);
 
-                        foreach (var modificationItem in modificationItems)
+                        foreach (HtmlNode modificationItem in modificationItems)
                         {
                             link = GetModificationPageLink(modificationItem);
 
@@ -65,7 +65,7 @@ namespace AutoMailRuParser.BLL
 
         private static HtmlDocument GetHtmlDocument(string url)
         {
-            var web = new HtmlWeb();
+            HtmlWeb web = new HtmlWeb();
             return web.Load(url);
         }
 
@@ -73,9 +73,9 @@ namespace AutoMailRuParser.BLL
         {
             string url = Path.Combine(urlCatalog, firstCatalogPage);
 
-            var htmlDocument = GetHtmlDocument(url);
+            HtmlDocument htmlDocument = GetHtmlDocument(url);
 
-            var linkNode = htmlDocument.DocumentNode.Descendants("a")
+            HtmlNode linkNode = htmlDocument.DocumentNode.Descendants("a")
                 .Where(node => node.GetAttributeValue("class", "")
                 .Equals("paging__link paging__link_last js-paging__page"))
                 .FirstOrDefault();
@@ -102,7 +102,7 @@ namespace AutoMailRuParser.BLL
         private static string GetCatalogItemLink(HtmlNode node)
         {
             string resultLink = string.Empty;
-            var linkNode = node.Descendants("a")
+            HtmlNode linkNode = node.Descendants("a")
                 .Where(link => link.GetAttributeValue("class", "")
                 .Equals("hdr__text"))
                 .FirstOrDefault();
@@ -127,7 +127,7 @@ namespace AutoMailRuParser.BLL
         {
             string resultLink = string.Empty;
 
-            var linkNode = node.Descendants("a")
+            HtmlNode linkNode = node.Descendants("a")
                 .Where(link => link.GetAttributeValue("class", "")
                 .Equals("text text_bold_medium"))
                 .FirstOrDefault();
@@ -149,18 +149,27 @@ namespace AutoMailRuParser.BLL
                 .Equals("link__text"))
                 .ToArray();
 
-            resultCar.Brand = nodes[1].InnerText;
+            if (nodes.Length >= 3)
+            {
+                resultCar.Brand = nodes[1].InnerText;
 
-            resultCar.Model = nodes[2].InnerText;
+                resultCar.Model = nodes[2].InnerText;
+            }
+            else
+            {
+                resultCar.Brand = string.Empty;
 
-            var headerNode = doc.DocumentNode.Descendants("h1")
+                resultCar.Model = string.Empty;
+            }
+
+            HtmlNode headerNode = doc.DocumentNode.Descendants("h1")
                 .Where(node => node.GetAttributeValue("class", "")
                 .Equals("hdr hdr_bold_huge hdr_color_white hdr_collapse"))
                 .FirstOrDefault();
 
             if (headerNode != null)
             {
-                var yearsNode = headerNode.Descendants("span")
+                HtmlNode yearsNode = headerNode.Descendants("span")
                     .Where(node => node.GetAttributeValue("class", "")
                     .Equals("hdr__ending color_gray"))
                     .FirstOrDefault();
@@ -169,9 +178,17 @@ namespace AutoMailRuParser.BLL
                 {
                     resultCar.ProductionYears = yearsNode.InnerText.Replace("&ndash;", "-");
                 }
+                else
+                {
+                    resultCar.ProductionYears = string.Empty;
+                }
+            }
+            else
+            {
+                resultCar.ProductionYears = string.Empty;
             }
 
-            var priceNode = doc.DocumentNode.Descendants("span")
+            HtmlNode priceNode = doc.DocumentNode.Descendants("span")
                 .Where(node => node.GetAttributeValue("class", "")
                 .Equals("text text_slab_medium margin_right_10"))
                 .FirstOrDefault();
@@ -180,13 +197,17 @@ namespace AutoMailRuParser.BLL
             {
                 resultCar.Price = priceNode.InnerText.Replace("&nbsp;", " ");
             }
+            else
+            {
+                resultCar.Price = string.Empty;
+            }
 
             nodes = doc.DocumentNode.Descendants("div")
                 .Where(node => node.GetAttributeValue("class", "")
                 .Equals("js-specs-content js-specs-content_active"))
                 .ToArray();
 
-            var modificationNode = nodes[0].Descendants("span")
+            HtmlNode modificationNode = nodes[0].Descendants("span")
                 .Where(node => node.GetAttributeValue("class", "")
                 .Equals("text text_bold_medium"))
                 .FirstOrDefault();
@@ -195,8 +216,12 @@ namespace AutoMailRuParser.BLL
             {
                 resultCar.Modification = modificationNode.InnerText;
             }
+            else
+            {
+                resultCar.Modification = string.Empty;
+            }
 
-            var descriptionNode = nodes[0].Descendants("div")
+            HtmlNode descriptionNode = nodes[0].Descendants("div")
                 .Where(node => node.GetAttributeValue("class", "")
                 .Equals("padding_bottom_10"))
                 .FirstOrDefault();
@@ -205,8 +230,12 @@ namespace AutoMailRuParser.BLL
             {
                 resultCar.Description = descriptionNode.InnerText.Replace("&nbsp;", " ");
             }
+            else
+            {
+                resultCar.Description = string.Empty;
+            }
 
-            var specNodes = nodes[1]
+            HtmlNode[] specNodes = nodes[1]
                 .ChildNodes
                 .ToArray();
 
@@ -216,40 +245,72 @@ namespace AutoMailRuParser.BLL
                 {
                     resultCar.EngineSpec = GetSpecs(ref i, specNodes);
                 }
+                else
+                {
+                    resultCar.EngineSpec = new Dictionary<string, string>();
+                }
 
                 if (i < specNodes.Length && specNodes[i].InnerText == "Динамические характеристики")
                 {
                     resultCar.DynamicSpec = GetSpecs(ref i, specNodes);
+                }
+                else
+                {
+                    resultCar.DynamicSpec = new Dictionary<string, string>();
                 }
 
                 if (i < specNodes.Length && specNodes[i].InnerText == "Трансмиссия")
                 {
                     resultCar.TransmissionSpec = GetSpecs(ref i, specNodes);
                 }
+                else
+                {
+                    resultCar.TransmissionSpec = new Dictionary<string, string>();
+                }
 
                 if (i < specNodes.Length && specNodes[i].InnerText == "Ходовая часть")
                 {
                     resultCar.ChassisSpec = GetSpecs(ref i, specNodes);
+                }
+                else
+                {
+                    resultCar.ChassisSpec = new Dictionary<string, string>();
                 }
 
                 if (i < specNodes.Length && specNodes[i].InnerText == "Кузов")
                 {
                     resultCar.BodySpec = GetSpecs(ref i, specNodes);
                 }
+                else
+                {
+                    resultCar.BodySpec = new Dictionary<string, string>();
+                }
 
                 if (i < specNodes.Length && specNodes[i].InnerText == "Рулевое управление")
                 {
                     resultCar.SteeringSpec = GetSpecs(ref i, specNodes);
+                }
+                else
+                {
+                    resultCar.SteeringSpec = new Dictionary<string, string>();
                 }
 
                 if (i < specNodes.Length && specNodes[i].InnerText == "Размеры, масса, объемы")
                 {
                     resultCar.DimensionsSpec = GetSpecs(ref i, specNodes);
                 }
+                else
+                {
+                    resultCar.DimensionsSpec = new Dictionary<string, string>();
+                }
 
                 if (i < specNodes.Length && specNodes[i].InnerText == "Прочее")
                 {
                     resultCar.OtherSpec = GetSpecs(ref i, specNodes);
+                }
+                else
+                {
+                    resultCar.OtherSpec = new Dictionary<string, string>();
                 }
             }
 

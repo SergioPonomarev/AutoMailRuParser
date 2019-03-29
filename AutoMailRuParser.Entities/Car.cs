@@ -5,24 +5,6 @@ namespace AutoMailRuParser.Entities
 {
     public class Car
     {
-        public Car()
-        {
-            this.EngineSpec = new Dictionary<string, string>();
-            this.DynamicSpec = new Dictionary<string, string>();
-            this.TransmissionSpec = new Dictionary<string, string>();
-            this.ChassisSpec = new Dictionary<string, string>();
-            this.BodySpec = new Dictionary<string, string>();
-            this.SteeringSpec = new Dictionary<string, string>();
-            this.DimensionsSpec = new Dictionary<string, string>();
-            this.OtherSpec = new Dictionary<string, string>();
-            this.Brand = string.Empty;
-            this.Model = string.Empty;
-            this.ProductionYears = string.Empty;
-            this.Price = string.Empty;
-            this.Modification = string.Empty;
-            this.Description = string.Empty;
-        }
-
         public Dictionary<string, string> EngineSpec { get; set; }
 
         public Dictionary<string, string> DynamicSpec { get; set; }
