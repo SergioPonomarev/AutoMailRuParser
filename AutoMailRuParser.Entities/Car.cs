@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace AutoMailRuParser.Entities
 {
+    /// <summary>
+    /// Класс инкапсулирующий информацию по машине (по модификации модели машины)
+    /// </summary>
     public class Car
     {
         public Dictionary<string, string> EngineSpec { get; set; }

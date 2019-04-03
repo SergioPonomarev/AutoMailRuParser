@@ -48,10 +48,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AutoMailRuParser.BLL.Contracts\AutoMailRuParser.BLL.Contracts.csproj">
-      <Project>{86A4812D-686A-426A-985D-9F9265C637BC}</Project>
-      <Name>AutoMailRuParser.BLL.Contracts</Name>
-    </ProjectReference>
     <ProjectReference Include="..\AutoMailRuParser.Entities\AutoMailRuParser.Entities.csproj">
       <Project>{BF89B0F0-4B30-4221-8124-77D0ABB9EACA}</Project>
       <Name>AutoMailRuParser.Entities</Name>

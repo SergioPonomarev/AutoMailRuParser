@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMailRuParser.Entities;
 using HtmlAgilityPack;
+using AutoMailRuParser.Entities;
 
-namespace AutoMailRuParser.BLL.AsyncWithRestrictions
+namespace AutoMailRuParser.BLL.Async
 {
     /// <summary>
     /// Класс с логикой по сбору информации по машинам
@@ -97,7 +97,7 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
         }
 
         /// <summary>
-        /// Сбор нод с ссылками на страницы конкретных модификаций модели машины
+        /// Сбор нод с ссылками на страницы конкретных модификаций моделей машин
         /// </summary>
         /// <param name="catalogItems">
         /// Коллекция нод с ссылками на страницы модели машины
@@ -111,16 +111,9 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
 
             List<HtmlNode> modificationItems = new List<HtmlNode>();
 
-            for (int i = 0; i < catalogItems.Count; i++)
+            foreach (HtmlNode catalogItem in catalogItems)
             {
-                int index = i;
-                modificationItemsTasks.Add(Task.Run(() => GetModificationItemsAsync(catalogItems[index])));
-
-                if (index % 6 == 0)
-                {
-                    Console.WriteLine(i);
-                    Task.WaitAll(modificationItemsTasks.ToArray());
-                }
+                modificationItemsTasks.Add(Task.Run(() => GetModificationItemsAsync(catalogItem)));
             }
 
             IEnumerable<HtmlNode>[] temp = await Task.WhenAll(modificationItemsTasks);
@@ -132,6 +125,7 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
 
             return modificationItems;
         }
+
 
         /// <summary>
         /// Сбор информации по каждой модификации каждой модели каждой машины
@@ -148,15 +142,9 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
 
             List<Task<Car>> carTasks = new List<Task<Car>>(modificationItems.Count);
 
-            for (int i = 0; i < modificationItems.Count; i++)
+            foreach (HtmlNode modificationItem in modificationItems)
             {
-                int index = i;
-                carTasks.Add(Task.Run(() => GetModelInfoAsync(modificationItems[index])));
-
-                if (index % 10 == 0)
-                {
-                    Task.WaitAll(carTasks.ToArray());
-                }
+                carTasks.Add(Task.Run(() => GetModelInfoAsync(modificationItem)));
             }
 
             result.AddRange(await Task.WhenAll(carTasks));

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{86A4812D-686A-426A-985D-9F9265C637BC}</ProjectGuid>
+    <ProjectGuid>{4B6C4B8D-751D-4578-98EF-E386115A7A34}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AutoMailRuParser.BLL.Contracts</RootNamespace>
-    <AssemblyName>AutoMailRuParser.BLL.Contracts</AssemblyName>
+    <RootNamespace>AutoMailRuParser.BLL.Async</RootNamespace>
+    <AssemblyName>AutoMailRuParser.BLL.Async</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HtmlAgilityPack, Version=1.11.1.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>..\packages\HtmlAgilityPack.1.11.1\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -41,14 +44,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ICarsLogic.cs" />
+    <Compile Include="CarsLogic.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AutoMailRuParser.Entities\AutoMailRuParser.Entities.csproj">
-      <Project>{bf89b0f0-4b30-4221-8124-77d0abb9eaca}</Project>
+      <Project>{BF89B0F0-4B30-4221-8124-77D0ABB9EACA}</Project>
       <Name>AutoMailRuParser.Entities</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

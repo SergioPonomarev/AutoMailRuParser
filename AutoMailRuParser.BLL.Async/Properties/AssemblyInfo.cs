@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("AutoMailRuParser.BLL.Contracts")]
+[assembly: AssemblyTitle("AutoMailRuParser.BLL.Async")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("AutoMailRuParser.BLL.Contracts")]
+[assembly: AssemblyProduct("AutoMailRuParser.BLL.Async")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("86a4812d-686a-426a-985d-9f9265c637bc")]
+[assembly: Guid("4b6c4b8d-751d-4578-98ef-e386115a7a34")]
 
 // Version information for an assembly consists of the following four values:
 //

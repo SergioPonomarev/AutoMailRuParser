@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using AutoMailRuParser.Entities;
 using HtmlAgilityPack;
+using AutoMailRuParser.Entities;
 
-namespace AutoMailRuParser.BLL.AsyncWithRestrictions
+namespace AutoMailRuParser.BLL.Synchronous
 {
     /// <summary>
     /// Класс с логикой по сбору информации по машинам
@@ -17,7 +16,6 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
         private static readonly string urlCatalog = "https://auto.mail.ru/catalog/search/?page=";
         private static readonly string firstCatalogPage = "1";
         private static readonly int firstCatalogPageNum = 1;
-        private static readonly object _lock = new object();
 
         /// <summary>
         /// Единственный публичный метод, внутри которого запускаются части алгоритма.
@@ -25,197 +23,60 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
         /// <returns>
         /// Возвращает перечисление машин.
         /// </returns>
-        public async Task<IEnumerable<Car>> GetAllCarsInfoAsync()
+        public IEnumerable<Car> GetAllCarsInfo()
         {
-            int lastCatalogPageNum = await GetLastCatalogPageAsync();
+            int lastCatalogPageNum = GetLastCatalogPage();
 
-            List<HtmlDocument> pages = await GetSearchPagesAsync(lastCatalogPageNum);
-
-            List<HtmlNode> catalogItems = await GetAllCatalogItemsAsync(pages);
-
-            List<HtmlNode> modificationItems = await GetAllModificationItemsAsync(catalogItems);
-
-            List<Car> result = await GetAllCarsAsync(modificationItems);
-
-            return result;
-        }
-
-        /// <summary>
-        /// Метод для сбора всех страниц поиска с сайта
-        /// </summary>
-        /// <param name="lastPage">
-        /// Последняя страница поиска с сайта
-        /// </param>
-        /// <returns>
-        /// Возвращает коллекцию HTML документов страниц поиска
-        /// </returns>
-        private static async Task<List<HtmlDocument>> GetSearchPagesAsync(int lastPage)
-        {
-            List<Task<HtmlDocument>> pagesTasks = new List<Task<HtmlDocument>>(lastPage);
-            List<HtmlDocument> pages = new List<HtmlDocument>(lastPage);
-
-            for (int i = firstCatalogPageNum; i <= lastPage; i++)
-            {
-                Console.WriteLine("Page " + i.ToString());
-                string url = urlCatalog + i.ToString();
-
-                pagesTasks.Add(Task.Run(() => GetHtmlDocumentAsync(url)));
-            }
-
-            pages.AddRange(await Task.WhenAll(pagesTasks));
-            return pages;
-        }
-
-        /// <summary>
-        /// Метод для сбора нод с ссылкой на страницу модели машины со страниц поиска сайта
-        /// </summary>
-        /// <param name="pages">
-        /// Колекция страниц поиска (HTML документов)
-        /// </param>
-        /// <returns>
-        /// Коллекцию нод с ссылкой на страницу модели машины
-        /// </returns>
-        private static async Task<List<HtmlNode>> GetAllCatalogItemsAsync(List<HtmlDocument> pages)
-        {
-            List<Task<List<HtmlNode>>> catalogItemsTasks = new List<Task<List<HtmlNode>>>();
-
-            List<HtmlNode> catalogItems = new List<HtmlNode>();
-
-            foreach (HtmlDocument page in pages)
-            {
-                catalogItemsTasks.Add(Task.Run(() => GetItemsFromCatalog(page)));
-            }
-
-            List<HtmlNode>[] catalogItemsArr = await Task.WhenAll(catalogItemsTasks);
-
-            foreach (List<HtmlNode> item in catalogItemsArr)
-            {
-                catalogItems.AddRange(item);
-            }
-
-            return catalogItems;
-        }
-
-        /// <summary>
-        /// Сбор нод с ссылками на страницы конкретных модификаций модели машины
-        /// </summary>
-        /// <param name="catalogItems">
-        /// Коллекция нод с ссылками на страницы модели машины
-        /// </param>
-        /// <returns>
-        /// Коллекцию нод с ссылками на страницы конкретных модификаций модели машины
-        /// </returns>
-        private async Task<List<HtmlNode>> GetAllModificationItemsAsync(List<HtmlNode> catalogItems)
-        {
-            List<Task<List<HtmlNode>>> modificationItemsTasks = new List<Task<List<HtmlNode>>>();
-
-            List<HtmlNode> modificationItems = new List<HtmlNode>();
-
-            for (int i = 0; i < catalogItems.Count; i++)
-            {
-                int index = i;
-                modificationItemsTasks.Add(Task.Run(() => GetModificationItemsAsync(catalogItems[index])));
-
-                if (index % 6 == 0)
-                {
-                    Console.WriteLine(i);
-                    Task.WaitAll(modificationItemsTasks.ToArray());
-                }
-            }
-
-            IEnumerable<HtmlNode>[] temp = await Task.WhenAll(modificationItemsTasks);
-
-            foreach (List<HtmlNode> item in temp)
-            {
-                modificationItems.AddRange(item);
-            }
-
-            return modificationItems;
-        }
-
-        /// <summary>
-        /// Сбор информации по каждой модификации каждой модели каждой машины
-        /// </summary>
-        /// <param name="modificationItems">
-        /// Коллекция нод с ссылками на страницы модификаций каждой модели машины
-        /// </param>
-        /// <returns>
-        /// Коллекцию машин (объекты инкапсулирующие информацию по машине)
-        /// </returns>
-        private static async Task<List<Car>> GetAllCarsAsync(List<HtmlNode> modificationItems)
-        {
             List<Car> result = new List<Car>();
 
-            List<Task<Car>> carTasks = new List<Task<Car>>(modificationItems.Count);
-
-            for (int i = 0; i < modificationItems.Count; i++)
+            for (int i = firstCatalogPageNum; i <= lastCatalogPageNum; i++)
             {
-                int index = i;
-                carTasks.Add(Task.Run(() => GetModelInfoAsync(modificationItems[index])));
+                string url = urlCatalog + i.ToString();
 
-                if (index % 10 == 0)
+                HtmlDocument htmlDocument = GetHtmlDocument(url);
+                Console.WriteLine();
+
+                IEnumerable<HtmlNode> catalogItems = GetItemsFromCatalog(htmlDocument);
+                Console.WriteLine();
+
+                foreach (HtmlNode catalogItem in catalogItems)
                 {
-                    Task.WaitAll(carTasks.ToArray());
+                    string link = GetCatalogItemLink(catalogItem);
+                    Console.WriteLine();
+
+                    if (!string.IsNullOrWhiteSpace(link))
+                    {
+                        url = Path.Combine(urlMain, link);
+
+                        htmlDocument = GetHtmlDocument(url);
+                        Console.WriteLine();
+
+                        IEnumerable<HtmlNode> modificationItems = GetModificationListItems(htmlDocument);
+                        Console.WriteLine();
+
+                        foreach (HtmlNode modificationItem in modificationItems)
+                        {
+                            link = GetModificationPageLink(modificationItem);
+                            Console.WriteLine();
+
+                            if (!string.IsNullOrWhiteSpace(link))
+                            {
+                                url = Path.Combine(urlMain, link);
+
+                                htmlDocument = GetHtmlDocument(url);
+                                Console.WriteLine();
+
+                                Car car = GetCarInfo(htmlDocument);
+                                Console.WriteLine();
+
+                                result.Add(car);
+                            }
+                        }
+                    }
                 }
             }
 
-            result.AddRange(await Task.WhenAll(carTasks));
-
-            Console.WriteLine(result.Count);
-
             return result;
-        }
-
-        /// <summary>
-        /// Сбор нод с ссылками на страницы модификаций модели машины (вспомогательный метод к GetAllModificationItems)
-        /// </summary>
-        /// <param name="catalogItem">
-        /// Нода с сылкой на страницу модели
-        /// </param>
-        /// <returns>
-        /// Коллекцию нод с сылками на страницы модификаций модели машины
-        /// </returns>
-        private static async Task<List<HtmlNode>> GetModificationItemsAsync(HtmlNode catalogItem)
-        {
-            List<HtmlNode> modificationItems = new List<HtmlNode>();
-
-            string link = GetCatalogItemLink(catalogItem);
-
-            if (!string.IsNullOrWhiteSpace(link))
-            {
-                string url = Path.Combine(urlMain, link);
-
-                HtmlDocument htmlDocument = await GetHtmlDocumentAsync(url);
-
-                modificationItems = GetModificationListItems(htmlDocument);
-            }
-
-            return modificationItems;
-        }
-
-        /// <summary>
-        /// Сбор информации по модификации модели машины
-        /// </summary>
-        /// <param name="modificationItem">
-        /// Нода с ссылкой на страницу модификации машины
-        /// </param>
-        /// <returns>
-        /// Информацию по машине
-        /// </returns>
-        private static async Task<Car> GetModelInfoAsync(HtmlNode modificationItem)
-        {
-            string link = GetModificationPageLink(modificationItem);
-
-            HtmlDocument htmlDocument = null;
-
-            if (!string.IsNullOrWhiteSpace(link))
-            {
-                string url = Path.Combine(urlMain, link);
-
-                htmlDocument = await GetHtmlDocumentAsync(url);
-            }
-
-            return GetCarInfo(htmlDocument);
         }
 
         /// <summary>
@@ -227,41 +88,17 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
         /// <returns>
         /// HTML документ
         /// </returns>
-        private static async Task<HtmlDocument> GetHtmlDocumentAsync(string url, int atempt = 1)
+        private static HtmlDocument GetHtmlDocument(string url)
         {
             HtmlWeb web = new HtmlWeb();
-            HtmlDocument temp = null;
-            try
-            {
-                temp = await web.LoadFromWebAsync(url);
-            }
-            catch (Exception)
-            {
-                atempt++;
-                Console.WriteLine(url);
-                Console.WriteLine($"Atempt # {atempt.ToString()}");
-                if (atempt == 10)
-                {
-                    throw new HtmlWebException("Impossible to connect");
-                }
-
-                await Task.Run(() => GetHtmlDocumentAsync(url, atempt));
-            }
-
-            return temp;
+            return web.Load(url);
         }
 
-        /// <summary>
-        /// Метод для получения номера последней страницы поиска
-        /// </summary>
-        /// <returns>
-        /// Номер последней страницы поиска
-        /// </returns>
-        private static async Task<int> GetLastCatalogPageAsync()
+        private static int GetLastCatalogPage()
         {
             string url = Path.Combine(urlCatalog, firstCatalogPage);
 
-            HtmlDocument htmlDocument = await GetHtmlDocumentAsync(url);
+            HtmlDocument htmlDocument = GetHtmlDocument(url);
 
             HtmlNode linkNode = htmlDocument.DocumentNode.Descendants("a")
                 .Where(node => node.GetAttributeValue("class", "")
@@ -280,7 +117,7 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
         }
 
         /// <summary>
-        /// Сбор нод с ссылками на страницы моделей машин со страницы поиска (вспомогательный к GetAllCatalogItems)
+        /// Сбор нод с ссылками на страницы моделей машин со страницы поиска
         /// </summary>
         /// <param name="doc">
         /// HTML документ со страницей поиска
@@ -288,23 +125,14 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
         /// <returns>
         /// Коллекцию нод с ссылками на страницы моделей
         /// </returns>
-        private static List<HtmlNode> GetItemsFromCatalog(HtmlDocument doc)
+        private static IEnumerable<HtmlNode> GetItemsFromCatalog(HtmlDocument doc)
         {
             return doc.DocumentNode.Descendants("div")
                 .Where(node => node.GetAttributeValue("class", "")
                 .Equals("p-search__item js-module link-hdr"))
-                .ToList();
+                .ToArray();
         }
 
-        /// <summary>
-        /// Метод для получения пути к странице с модификациями модели (вспомогательный к GetModificationItems)
-        /// </summary>
-        /// <param name="node">
-        /// Нода с ссылкой на страницу с модификациями модели
-        /// </param>
-        /// <returns>
-        /// Путь к странице с модификациями модели
-        /// </returns>
         private static string GetCatalogItemLink(HtmlNode node)
         {
             string resultLink = string.Empty;
@@ -322,20 +150,20 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
         }
 
         /// <summary>
-        /// Сбор нод с ссылками на страницы модификаций модели машины (вспомогательный к GetModificationItems)
+        /// Сбор нод с ссылками на страницы модификаций модели машины
         /// </summary>
         /// <param name="doc"></param>
         /// <returns></returns>
-        private static List<HtmlNode> GetModificationListItems(HtmlDocument doc)
+        private static IEnumerable<HtmlNode> GetModificationListItems(HtmlDocument doc)
         {
             return doc.DocumentNode.Descendants("span")
                 .Where(node => node.GetAttributeValue("class", "")
                 .Equals("cell padding_10 padding_bottom_5"))
-                .ToList();
+                .ToArray();
         }
 
         /// <summary>
-        /// Метод для получения ссылки на страницу модификации модели машины (вспомогательный к GetModelInfo)
+        /// Метод для получения ссылки на страницу модификации модели машины
         /// </summary>
         /// <param name="node">
         /// Нода с ссылкой на страницу модификации модели машины
@@ -359,7 +187,7 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
         }
 
         /// <summary>
-        /// Метод для получения информации по модификации модли машины (вспомогательный к GetModelInfo)
+        /// Метод для получения информации по модификации модли машины
         /// </summary>
         /// <param name="doc">
         /// HTML документ с информацией по модификации модели машины
