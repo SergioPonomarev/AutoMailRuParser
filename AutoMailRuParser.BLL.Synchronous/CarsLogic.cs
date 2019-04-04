@@ -34,40 +34,32 @@ namespace AutoMailRuParser.BLL.Synchronous
                 string url = urlCatalog + i.ToString();
 
                 HtmlDocument htmlDocument = GetHtmlDocument(url);
-                Console.WriteLine();
 
                 IEnumerable<HtmlNode> catalogItems = GetItemsFromCatalog(htmlDocument);
-                Console.WriteLine();
 
                 foreach (HtmlNode catalogItem in catalogItems)
                 {
                     string link = GetCatalogItemLink(catalogItem);
-                    Console.WriteLine();
 
                     if (!string.IsNullOrWhiteSpace(link))
                     {
                         url = Path.Combine(urlMain, link);
 
                         htmlDocument = GetHtmlDocument(url);
-                        Console.WriteLine();
 
                         IEnumerable<HtmlNode> modificationItems = GetModificationListItems(htmlDocument);
-                        Console.WriteLine();
 
                         foreach (HtmlNode modificationItem in modificationItems)
                         {
                             link = GetModificationPageLink(modificationItem);
-                            Console.WriteLine();
 
                             if (!string.IsNullOrWhiteSpace(link))
                             {
                                 url = Path.Combine(urlMain, link);
 
                                 htmlDocument = GetHtmlDocument(url);
-                                Console.WriteLine();
 
                                 Car car = GetCarInfo(htmlDocument);
-                                Console.WriteLine();
 
                                 result.Add(car);
                             }

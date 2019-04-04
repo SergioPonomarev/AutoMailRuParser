@@ -17,19 +17,52 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
         private static readonly string urlCatalog = "https://auto.mail.ru/catalog/search/?page=";
         private static readonly string firstCatalogPage = "1";
         private static readonly int firstCatalogPageNum = 1;
-        private static readonly object _lock = new object();
+        private static readonly int pagesRange = 20;
 
         /// <summary>
-        /// Единственный публичный метод, внутри которого запускаются части алгоритма.
+        /// 
         /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<Car>> GetCars()
+        {
+            List<Car> cars = new List<Car>();
+
+            int lastCatalogPageNum = await GetLastCatalogPageAsync();
+
+            int firstPageInBlock = firstCatalogPageNum;
+            int lastPageInBlock = pagesRange;
+
+            int lastBlock = lastCatalogPageNum % pagesRange;
+            int blocks = lastCatalogPageNum / pagesRange;
+
+            for (int i = 1; i <= blocks; i++)
+            {
+                cars.AddRange(await GetAllCarsInfoAsync(firstPageInBlock, lastPageInBlock));
+
+                firstPageInBlock += pagesRange;
+                lastPageInBlock += pagesRange;
+            }
+
+
+            cars.AddRange(await GetAllCarsInfoAsync(firstPageInBlock, lastCatalogPageNum));
+
+            return cars;
+        }
+
+        /// <summary>
+        /// Метод, внутри которого запускаются части алгоритма для сбора данных по машинам.
+        /// </summary>
+        /// <param name="firstPage" name="lastPage">
+        /// Диапазон страниц поиска
+        /// </param>
         /// <returns>
         /// Возвращает перечисление машин.
         /// </returns>
-        public async Task<IEnumerable<Car>> GetAllCarsInfoAsync()
+        private async Task<IEnumerable<Car>> GetAllCarsInfoAsync(int firstPage, int lastPage)
         {
-            int lastCatalogPageNum = await GetLastCatalogPageAsync();
+            //int lastCatalogPageNum = await GetLastCatalogPageAsync();
 
-            List<HtmlDocument> pages = await GetSearchPagesAsync(lastCatalogPageNum);
+            List<HtmlDocument> pages = await GetSearchPagesAsync(firstPage, lastPage);
 
             List<HtmlNode> catalogItems = await GetAllCatalogItemsAsync(pages);
 
@@ -49,14 +82,13 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
         /// <returns>
         /// Возвращает коллекцию HTML документов страниц поиска
         /// </returns>
-        private static async Task<List<HtmlDocument>> GetSearchPagesAsync(int lastPage)
+        private static async Task<List<HtmlDocument>> GetSearchPagesAsync(int firstPage, int lastPage)
         {
             List<Task<HtmlDocument>> pagesTasks = new List<Task<HtmlDocument>>(lastPage);
             List<HtmlDocument> pages = new List<HtmlDocument>(lastPage);
 
-            for (int i = firstCatalogPageNum; i <= lastPage; i++)
+            for (int i = firstPage; i <= lastPage; i++)
             {
-                Console.WriteLine("Page " + i.ToString());
                 string url = urlCatalog + i.ToString();
 
                 pagesTasks.Add(Task.Run(() => GetHtmlDocumentAsync(url)));
@@ -116,9 +148,8 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
                 int index = i;
                 modificationItemsTasks.Add(Task.Run(() => GetModificationItemsAsync(catalogItems[index])));
 
-                if (index % 6 == 0)
+                if (index % 50 == 0)
                 {
-                    Console.WriteLine(i);
                     Task.WaitAll(modificationItemsTasks.ToArray());
                 }
             }
@@ -153,15 +184,13 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
                 int index = i;
                 carTasks.Add(Task.Run(() => GetModelInfoAsync(modificationItems[index])));
 
-                if (index % 10 == 0)
+                if (index % 50 == 0)
                 {
                     Task.WaitAll(carTasks.ToArray());
                 }
             }
 
             result.AddRange(await Task.WhenAll(carTasks));
-
-            Console.WriteLine(result.Count);
 
             return result;
         }
@@ -238,8 +267,6 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
             catch (Exception)
             {
                 atempt++;
-                Console.WriteLine(url);
-                Console.WriteLine($"Atempt # {atempt.ToString()}");
                 if (atempt == 10)
                 {
                     throw new HtmlWebException("Impossible to connect");

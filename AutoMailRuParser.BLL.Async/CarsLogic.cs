@@ -17,7 +17,6 @@ namespace AutoMailRuParser.BLL.Async
         private static readonly string urlCatalog = "https://auto.mail.ru/catalog/search/?page=";
         private static readonly string firstCatalogPage = "1";
         private static readonly int firstCatalogPageNum = 1;
-        private static readonly object _lock = new object();
 
         /// <summary>
         /// Единственный публичный метод, внутри которого запускаются части алгоритма.
@@ -56,7 +55,6 @@ namespace AutoMailRuParser.BLL.Async
 
             for (int i = firstCatalogPageNum; i <= lastPage; i++)
             {
-                Console.WriteLine("Page " + i.ToString());
                 string url = urlCatalog + i.ToString();
 
                 pagesTasks.Add(Task.Run(() => GetHtmlDocumentAsync(url)));
@@ -149,8 +147,6 @@ namespace AutoMailRuParser.BLL.Async
 
             result.AddRange(await Task.WhenAll(carTasks));
 
-            Console.WriteLine(result.Count);
-
             return result;
         }
 
@@ -226,8 +222,6 @@ namespace AutoMailRuParser.BLL.Async
             catch (Exception)
             {
                 atempt++;
-                Console.WriteLine(url);
-                Console.WriteLine($"Atempt # {atempt.ToString()}");
                 if (atempt == 10)
                 {
                     throw new HtmlWebException("Impossible to connect");
