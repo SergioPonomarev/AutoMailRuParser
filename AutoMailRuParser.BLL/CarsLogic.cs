@@ -20,9 +20,11 @@ namespace AutoMailRuParser.BLL.AsyncWithRestrictions
         private static readonly int pagesRange = 20;
 
         /// <summary>
-        /// 
+        /// Сбор информации по машинам по заданному диапазону.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// Коллекция объектов с данными по машинам.
+        /// </returns>
         public async Task<IEnumerable<Car>> GetCars()
         {
             List<Car> cars = new List<Car>();
